@@ -94,9 +94,6 @@ export const Navbar = () => {
         justify="end"
       >
         <NavbarItem className="hidden sm:flex gap-2">
-          <Link isExternal aria-label="Github" href={siteConfig.links.github}>
-            <GithubIcon className="text-default-500" />
-          </Link>
           <ThemeSwitch />
         </NavbarItem>
         <NavbarItem className="hidden md:flex">

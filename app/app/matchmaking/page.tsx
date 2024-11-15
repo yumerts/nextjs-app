@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Navbar, NavbarBrand, NavbarContent, Button, Card, CardBody, CardFooter, Avatar, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@nextui-org/react"
 import { LogOut, Eye, Play, FastForward, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 // Sample data for matches
 const sampleMatches = {
@@ -20,13 +21,6 @@ const sampleMatches = {
   ]
 }
 
-// Sample user data
-const user = {
-  name: "John Doe",
-  avatar: "/placeholder.svg?height=40&width=40",
-  level: 42
-}
-
 export default function MatchMakingLobbies() {
   const [matches, setMatches] = useState(sampleMatches)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -34,9 +28,13 @@ export default function MatchMakingLobbies() {
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null)
   const [betAmount, setBetAmount] = useState<string>('')
 
+  const router = useRouter()
+
+
   const handleCreateMatch = () => {
     console.log("Creating a new match")
     // Add your create match logic here
+    router.push('/');
   }
 
   const handlePredict = (match: { playerA: string; playerB: string }) => {
