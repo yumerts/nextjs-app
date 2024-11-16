@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Navbar, NavbarBrand, NavbarContent, Button, Card, CardBody, CardFooter, Avatar, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@nextui-org/react"
 import { LogOut, Eye, Play, FastForward, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -8,24 +8,11 @@ import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { payUSDC } from "@/helpers/payusdc";
 
 // Sample data for matches
-const sampleMatches = {
-  startingSoon: [
-    { id: 1, playerA: "Alice", playerB: "Bob", startTime: "10:00 AM" },
-    { id: 2, playerA: "Charlie", playerB: "David", startTime: "10:30 AM" },
-  ],
-  ongoing: [
-    { id: 3, playerA: "Eve", playerB: "Frank", duration: "15:20" },
-    { id: 4, playerA: "Grace", playerB: "Henry", duration: "08:45" },
-  ],
-  pending: [
-    { id: 5, playerA: "Ivy", playerB: "...", result: "" },
-    { id: 6, playerA: "Kate", playerB: "...", result: "" },
-  ]
-}
 
 export default function MatchMakingLobbies() {
-  const [matches, setMatches] = useState(sampleMatches)
+  const [matches, setMatches] = useState(null)
   const [showModal1, setShowModal1] = useState(false)
+  const [showModal2, setShowModal2] = useState(false)
   const [selectedMatch, setSelectedMatch] = useState<{ playerA: string; playerB: string } | null>(null)
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null)
   const [betAmount, setBetAmount] = useState<string>('')
@@ -34,56 +21,74 @@ export default function MatchMakingLobbies() {
   const {ready, authenticated, login, logout, sendTransaction} = usePrivy();
   const {ready: walletsReady, wallets} = useWallets();
 
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        const response = await fetch('/api/get_matches');
+        if (response.ok) {
+          const data = await response.json();
+          setMatches(data); // Set the matches data to state
+        } else {
+          console.error('Failed to fetch matches');
+        }
+      } catch (error) {
+        console.error('Error fetching matches:', error);
+      }
+    };
+
+    fetchMatches(); // Call the fetch function when the component mounts
+  }, []); 
+
   const handleCreateMatch = async () => {
     console.log("Creating a new match")
     // Pay USDC
-    // const amountToDeposit = 1;
-    // const payment_hash = await payUSDC(wallets, amountToDeposit);
+    const amountToDeposit = 1000000;
+    const payment_hash = await payUSDC(wallets, amountToDeposit);
     // // Send create match request to game server
-    // try {
-    //   const response = await fetch('/api/create_match',{
-    //     method: 'POST',
-    //     body: JSON.stringify({'payment_hash': '123'}),
-    //     headers: {
-    //       'content-type': 'application/json'
-    //     }
-    //   })
+    try {
+      const response = await fetch('/api/create_match',{
+        method: 'POST',
+        body: JSON.stringify({'payment_hash': '123'}),
+        headers: {
+          'content-type': 'application/json'
+        }
+      })
     
-    //   const data = await response.json();
-    //   console.log(data.signature);
-    //   console.log(data.match_id);
-    //   if (response.status == 200) {
-    //     router.push('/game')
-    //   }
-    // } catch (error) {
-    //   console.error('Error:', error);
-    // }
+      const data = await response.json();
+      console.log(data.signature);
+      console.log(data.match_id);
+      if (response.status == 200) {
+        router.push(`/game/{match_id}`)
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   }
 
   const handleJoinMatch = async (matchId: number) => {
     console.log("Joining match:", matchId)
     // Handle join match logic
-    // const amountToDeposit = 1;
-    // const payment_hash = await payUSDC(wallets, amountToDeposit);
-    // try {
-    //   const response = await fetch('/api/join_match',{
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       'match_id': matchId, 
-    //       'payment_hash': '123'}),
-    //     headers: {
-    //       'content-type': 'application/json'
-    //     }
-    //   })
-    //   const data = await response.json();
-    //   console.log(data.signature);
-    //   console.log(data.match_id);
-    //   if (response.status == 200) {
-    //     router.push('/game')
-    //   }
-    // } catch (error) {
-    //   console.error('Error:', error);
-    // }
+    const amountToDeposit = 1000000;
+    const payment_hash = await payUSDC(wallets, amountToDeposit);
+    try {
+      const response = await fetch('/api/join_match',{
+        method: 'POST',
+        body: JSON.stringify({
+          'match_id': matchId, 
+          'payment_hash': '123'}),
+        headers: {
+          'content-type': 'application/json'
+        }
+      })
+      const data = await response.json();
+      console.log(data.signature);
+      console.log(data.match_id);
+      if (response.status == 200) {
+        router.push(`/game/{data.match_id}`)
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   }
 
   const handlePredict = (match: { playerA: string; playerB: string }) => {
@@ -102,13 +107,17 @@ export default function MatchMakingLobbies() {
   const handleConfirmBet = async () => {
     if (selectedPlayer && betAmount) {
       console.log(`Bet confirmed: ${betAmount} on ${selectedPlayer}`)
-      // const amountToDeposit = betAmount;
-      // const payment_hash = await payUSDC(wallets, amountToDeposit);
+      const amountToDeposit = betAmount * 1000000;
+      const payment_hash = "test";// await payUSDC(wallets, amountToDeposit);
       // Add your bet confirmation logic here
       setShowModal1(false)
       setSelectedPlayer(null)
       setBetAmount('')
       setSelectedMatch(null)
+      if (payment_hash !== null)
+      {
+        setShowModal2(true)
+      }
     }
   }
 
@@ -124,8 +133,9 @@ export default function MatchMakingLobbies() {
 
   return (
     <div className="min-h-screen bg-100">
-
-      <div className="p-4">
+      {matches === null ? (<p>Loading matches...</p>) : (
+        <div>
+          <div className="p-4">
         <Button color="primary" className="mb-6" onClick={handleCreateMatch}>
           <Plus className="mr-2 h-4 w-4" />
           Create Match
@@ -207,8 +217,8 @@ export default function MatchMakingLobbies() {
                   </Button>
                 </div>
                 <Input
-                  label="Bet Amount"
-                  placeholder="Enter bet amount"
+                  label="Bet Amount (USDC)"
+                  placeholder="Enter bet amount (USDC)"
                   type="number"
                   value={betAmount}
                   onChange={(e) => handleBetAmountChange(e.target.value)}
@@ -226,6 +236,23 @@ export default function MatchMakingLobbies() {
           )}
         </ModalContent>
       </Modal>
+
+
+      <Modal isOpen={showModal2} onClose={() => setShowModal2(false)}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Predict the Winner</ModalHeader>
+              <ModalBody>
+                <div className="flex gap-4 justify-center">
+                  <p>Bet Placed Successfully!</p>
+                </div>
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+      </div>)}
 
     </div>
   )

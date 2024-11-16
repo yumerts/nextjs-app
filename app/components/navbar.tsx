@@ -31,12 +31,18 @@ import {
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useContext } from "react";
 import { payUSDC } from "@/helpers/payusdc";
+import { useRouter } from "next/navigation";
 
 export const Navbar = () => {
 
   const {ready, authenticated, login, logout, sendTransaction} = usePrivy();
   const {ready: walletsReady, wallets} = useWallets();
+  const router = useRouter();
   let currentWallet = 0;
+
+  const goToProfile = () => {
+    router.push('/profile')
+  }
 
   return (
     <NextUINavbar maxWidth="xl" position="sticky">
@@ -73,15 +79,18 @@ export const Navbar = () => {
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu>
-                    <>
+                    {/* <>
                       {wallets.map((wallet, index) => (
                         <DropdownItem key={index} onClick={()=>{currentWallet=index}}>
                           {(wallet.walletClientType === "privy")?"(Managed) ":"(External) " + wallet.address.slice(0, 6) + "..." + wallet.address.slice(-4)}
                         </DropdownItem>
                       ))}
-                    </>
-                    <DropdownItem key="pay" className="text-primary" color="success" onClick={payUSDC(wallets, 100)}>
+                    </> */}
+                    {/* <DropdownItem key="pay" className="text-primary" color="success" onClick={payUSDC(wallets, 100)}>
                       Send USDC to Contract
+                    </DropdownItem> */}
+                    <DropdownItem key="profile" onClick={goToProfile}>
+                      Profile
                     </DropdownItem>
                     <DropdownItem key="delete" className="text-danger" color="danger" onClick={logout}>
                       Logout
