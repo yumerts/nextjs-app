@@ -3,6 +3,7 @@ import { usePrivy, useWallets } from '@privy-io/react-auth'; // Update with actu
 import { PushAPI, CONSTANTS } from '@pushprotocol/restapi';
 import { ENV } from '@pushprotocol/restapi/src/lib/constants';
 import toast, { Toaster } from 'react-hot-toast';
+import { useJoinGameModal } from './join_game_modal_provider';
 
 interface NotificationContextType {
 
@@ -14,7 +15,10 @@ export const PushNotificationProvider: React.FC<{ children: ReactNode }> = ({ ch
     const {ready, authenticated} = usePrivy();
     const {ready: walletsReady, wallets} =  useWallets();
     const [pushUser, setPushUser] = useState<PushAPI | null>(null);
+    const {openModal} = useJoinGameModal();
+    
     const target_channel = process.env.NEXT_PUBLIC_PUSH_NOTIFICATION_CHANNEL;
+
 
     useEffect(() => {
       const setupPushProfile = async () => {
@@ -45,7 +49,10 @@ export const PushNotificationProvider: React.FC<{ children: ReactNode }> = ({ ch
           
           pushWebSocket.on(CONSTANTS.STREAM.NOTIF, (data: any) => {
               toast("Notification received: " + data["message"]["payload"]["body"])
-              console.log(data["message"]["payload"]["body"] + "hmm")
+              console.log(data["message"]["payload"]);
+              if(String(data["message"]["payload"]["cta"]).includes("join")){
+                openModal(Number(String(data["message"]["payload"]["cta"]).split(" ")[1]));
+              }
           })     
 
           console.log("websocket connected")

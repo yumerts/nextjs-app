@@ -14,6 +14,8 @@ import { arbitrumSepolia } from "viem/chains";
 import { PushStream } from "@pushprotocol/restapi/src/lib/pushstream/PushStream";
 import { CONSTANTS, PushAPI } from "@pushprotocol/restapi";
 import { Toaster } from "react-hot-toast";
+import { JoinGameModalProvider } from "@/providers/join_game_modal_provider";
+import { GameWebsocketProvider } from "@/providers/game_websocket_provider";
 
 dotenv.config();
 
@@ -41,10 +43,14 @@ export function Providers({ children, themeProps }: ProvidersProps) {
             supportedChains: [arbitrumSepolia],
           }}
         >
-          <PushNotificationProvider>
-            <Toaster/>
-            {children}
-          </PushNotificationProvider>
+        <GameWebsocketProvider>
+             <JoinGameModalProvider>
+              <PushNotificationProvider>
+                <Toaster/>
+                {children}
+              </PushNotificationProvider>
+            </JoinGameModalProvider>
+          </GameWebsocketProvider>
         </PrivyProvider>
       </NextThemesProvider>
     </NextUIProvider>

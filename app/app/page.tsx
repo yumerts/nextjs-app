@@ -28,6 +28,7 @@ export default function MatchMakingLobbies() {
 
   const {ready, authenticated, login, logout, sendTransaction} = usePrivy();
   const {ready: walletsReady, wallets} = useWallets();
+
   useEffect(() => {
     const fetchMatches = async () => {
       try {
