@@ -6,6 +6,8 @@ import { LogOut, Eye, Play, FastForward, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { payUSDC } from "@/helpers/payusdc";
+import { match_info_contract_abi } from '@/constants/contract_abi'
+import { execute_match_info_contract_function } from '@/helpers/match_info_smart_contract_caller'
 
 // Sample data for matches
 
@@ -29,23 +31,30 @@ export default function MatchMakingLobbies() {
   useEffect(() => {
     const fetchMatches = async () => {
       try {
-        const response = await fetch(`http://localhost:8081/api/v1/matches`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_GAME_SERVER_HOST}/api/v1/matches`,
+          {
+            method: 'POST',
+            headers: {
+              'cache': 'no-store'
+            }
+          }
+        );
         if (response.ok) {
           const data = await response.json();
           const formattedMatches = {
-            pending: data.filter((match: any) => match.match_status === 0).map((match: any) => ({
+            pending: data.filter((match: { match_status: number }) => match.match_status === 0).map((match: { match_id: any; player1_public_address: any }) => ({
               id: match.match_id,
               playerA: match.player1_public_address,
               playerB: 'TBD',
               result: 'Pending'
             })),
-            startingSoon: data.filter((match: any) => match.match_status === 2).map((match: any) => ({
+            startingSoon: data.filter((match: { match_status: number }) => match.match_status === 2).map((match: { match_id: any; player1_public_address: any; player2_public_address: any }) => ({
               id: match.match_id,
               playerA: match.player1_public_address,
               playerB: match.player2_public_address,
               startTime: 'Soon'
             })),
-            ongoing: data.filter((match: any) => match.match_status === 3).map((match: any) => ({
+            ongoing: data.filter((match: { match_status: number }) => match.match_status === 3).map((match: { match_id: any; player1_public_address: any; player2_public_address: any }) => ({
               id: match.match_id,
               playerA: match.player1_public_address,
               playerB: match.player2_public_address,
@@ -68,29 +77,12 @@ export default function MatchMakingLobbies() {
   }, []);
 
   const handleCreateMatch = async () => {
-    console.log("Creating a new match")
-    // Pay USDC
-    const amountToDeposit = 1000000;
-    const payment_hash = await payUSDC(wallets, amountToDeposit);
-    // // Send create match request to game server
-    try {
-      const response = await fetch('/api/create_match',{
-        method: 'POST',
-        body: JSON.stringify({'payment_hash': '123'}),
-        headers: {
-          'content-type': 'application/json'
-        }
-      })
-    
-      const data = await response.json();
-      console.log(data.signature);
-      console.log(data.match_id);
-      if (response.status == 200) {
-        router.push(`/game/{match_id}`)
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    await execute_match_info_contract_function
+      ( 
+        wallets[0], 
+        'createMatch', 
+        []
+      )
   }
 
   const handleJoinMatch = async (matchId: number) => {
