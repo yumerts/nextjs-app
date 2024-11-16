@@ -9,8 +9,14 @@ import { payUSDC } from "@/helpers/payusdc";
 
 // Sample data for matches
 
+class MatchList{
+  pending: Array<{ id: number, playerA: string, playerB: string, result: string }> = [];
+  startingSoon: Array<{ id: number, playerA: string, playerB: string, startTime: string }> = [];
+  ongoing: Array<{ id: number, playerA: string, playerB: string, duration: string }> = [];
+}
+
 export default function MatchMakingLobbies() {
-  const [matches, setMatches] = useState(null)
+  const [matches, setMatches] = useState<MatchList>(new MatchList())
   const [showModal1, setShowModal1] = useState(false)
   const [showModal2, setShowModal2] = useState(false)
   const [selectedMatch, setSelectedMatch] = useState<{ playerA: string; playerB: string } | null>(null)
@@ -20,14 +26,33 @@ export default function MatchMakingLobbies() {
 
   const {ready, authenticated, login, logout, sendTransaction} = usePrivy();
   const {ready: walletsReady, wallets} = useWallets();
-
   useEffect(() => {
     const fetchMatches = async () => {
       try {
-        const response = await fetch('/api/get_matches');
+        const response = await fetch(`http://localhost:8081/api/v1/matches`);
         if (response.ok) {
           const data = await response.json();
-          setMatches(data); // Set the matches data to state
+          const formattedMatches = {
+            pending: data.filter((match: any) => match.match_status === 0).map((match: any) => ({
+              id: match.match_id,
+              playerA: match.player1_public_address,
+              playerB: 'TBD',
+              result: 'Pending'
+            })),
+            startingSoon: data.filter((match: any) => match.match_status === 2).map((match: any) => ({
+              id: match.match_id,
+              playerA: match.player1_public_address,
+              playerB: match.player2_public_address,
+              startTime: 'Soon'
+            })),
+            ongoing: data.filter((match: any) => match.match_status === 3).map((match: any) => ({
+              id: match.match_id,
+              playerA: match.player1_public_address,
+              playerB: match.player2_public_address,
+              duration: 'Ongoing'
+            }))
+          };
+          setMatches(formattedMatches);
         } else {
           console.error('Failed to fetch matches');
         }
@@ -37,7 +62,10 @@ export default function MatchMakingLobbies() {
     };
 
     fetchMatches(); // Call the fetch function when the component mounts
-  }, []); 
+    const intervalId = setInterval(fetchMatches, 1000); // Call fetchMatches every 1 second
+
+    return () => clearInterval(intervalId); // Clear interval on component unmount
+  }, []);
 
   const handleCreateMatch = async () => {
     console.log("Creating a new match")
@@ -107,7 +135,7 @@ export default function MatchMakingLobbies() {
   const handleConfirmBet = async () => {
     if (selectedPlayer && betAmount) {
       console.log(`Bet confirmed: ${betAmount} on ${selectedPlayer}`)
-      const amountToDeposit = betAmount * 1000000;
+      const amountToDeposit = Number(betAmount) * 1000000;
       const payment_hash = "test";// await payUSDC(wallets, amountToDeposit);
       // Add your bet confirmation logic here
       setShowModal1(false)
