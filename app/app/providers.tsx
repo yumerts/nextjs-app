@@ -44,7 +44,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
           }}
         >
         <GameWebsocketProvider>
-             <JoinGameModalProvider>
+            <JoinGameModalProvider>
               <PushNotificationProvider>
                 <Toaster/>
                 {children}

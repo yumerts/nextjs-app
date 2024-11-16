@@ -30,7 +30,7 @@ import {
 
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useContext } from "react";
-import { payUSDC } from "@/helpers/payusdc";
+import { pay_usdc_to_prediction_contract } from "@/helpers/payusdc";
 import { useRouter } from "next/navigation";
 
 export const Navbar = () => {

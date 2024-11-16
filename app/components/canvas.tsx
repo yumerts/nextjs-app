@@ -1,3 +1,4 @@
+import { useGameWebsocket } from '@/providers/game_websocket_provider';
 import React, { useEffect, useRef } from 'react';
 
 // Define proper TypeScript interfaces
@@ -8,6 +9,7 @@ interface Troop {
   currentCoordinate: Coordinate;
   targetCoordinate?: Coordinate;
   health: number;
+  attackingCoordinate? : Coordinate
 }
 
 interface Coordinate {
@@ -21,8 +23,19 @@ interface CanvasProps {
 
 const YumertsCanvas: React.FC<CanvasProps> = ({ inputReceived }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { gameWebsocket } = useGameWebsocket();
   const [troops, setTroops] = React.useState<Troop[]>([]);
   const [selectedTroop, setSelectedTroop] = React.useState<Troop | null>(null);
+
+  useEffect(() => {
+    if (!gameWebsocket) return;
+      gameWebsocket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === 'board_state') {
+          setTroops(message.data);
+        }
+      };
+  }, [gameWebsocket]);
 
   // Preload images
   const loadImages = async () => {
@@ -120,11 +133,39 @@ const YumertsCanvas: React.FC<CanvasProps> = ({ inputReceived }) => {
 
       // Draw movement arrows
       if (troop.targetCoordinate) {
+        const { x: startX, y: startY } = troop.currentCoordinate;
         const { x: endX, y: endY } = troop.targetCoordinate;
         ctx.beginPath();
         ctx.moveTo((x - 1) * cellSize + cellSize / 2, (y - 1) * cellSize + cellSize / 2);
         ctx.lineTo((endX - 1) * cellSize + cellSize / 2, (endY - 1) * cellSize + cellSize / 2);
         ctx.strokeStyle = 'yellow';
+        ctx.stroke();
+
+        // Draw arrowhead
+        const headlen = 10;
+        const angle = Math.atan2(endY - startY, endX - startX);
+        ctx.beginPath();
+        ctx.moveTo((endX - 1) * cellSize + cellSize / 2, (endY - 1) * cellSize + cellSize / 2);
+        ctx.lineTo(
+          (endX - 1) * cellSize + cellSize / 2 - headlen * Math.cos(angle - Math.PI / 6),
+          (endY - 1) * cellSize + cellSize / 2 - headlen * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.moveTo((endX - 1) * cellSize + cellSize / 2, (endY - 1) * cellSize + cellSize / 2);
+        ctx.lineTo(
+          (endX - 1) * cellSize + cellSize / 2 - headlen * Math.cos(angle + Math.PI / 6),
+          (endY - 1) * cellSize + cellSize / 2 - headlen * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.stroke();
+      }
+
+      //draw attack arrows
+      if(troop.attackingCoordinate){
+        const { x: startX, y: startY } = troop.currentCoordinate;
+        const { x: endX, y: endY } = troop.attackingCoordinate;
+        ctx.beginPath();
+        ctx.moveTo((x - 1) * cellSize + cellSize / 2, (y - 1) * cellSize + cellSize / 2);
+        ctx.lineTo((endX - 1) * cellSize + cellSize / 2, (endY - 1) * cellSize + cellSize / 2);
+        ctx.strokeStyle = 'red';
         ctx.stroke();
 
         // Draw arrowhead
@@ -170,8 +211,10 @@ const YumertsCanvas: React.FC<CanvasProps> = ({ inputReceived }) => {
 
     const rect = canvas.getBoundingClientRect();
     const cellSize = canvas.width / 20;
-    const x = Math.floor((event.clientX - rect.left) / cellSize) + 1;
-    const y = Math.floor((event.clientY - rect.top) / cellSize) + 1;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = Math.floor((event.clientX - rect.left) * scaleX / cellSize) + 1;
+    const y = Math.floor((event.clientY - rect.top) * scaleY / cellSize) + 1;
 
     const clickedTroop = troops.find(troop => 
       troop.currentCoordinate.x === x && troop.currentCoordinate.y === y
@@ -179,13 +222,14 @@ const YumertsCanvas: React.FC<CanvasProps> = ({ inputReceived }) => {
 
     if (clickedTroop) {
       setSelectedTroop(clickedTroop);
-    } else if (selectedTroop) {
-      inputReceived({
-        troopId: selectedTroop.troopId,
-        targetCoordinate: { x, y }
-      });
     } else {
       console.log("No troop on this cell", x, y)
+      if(selectedTroop){
+        inputReceived({
+          troopId: selectedTroop.troopId,
+          targetCoordinate: { x, y }
+        });
+      }
     }
   };
 

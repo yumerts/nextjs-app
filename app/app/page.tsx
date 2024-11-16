@@ -5,9 +5,10 @@ import { Navbar, NavbarBrand, NavbarContent, Button, Card, CardBody, CardFooter,
 import { LogOut, Eye, Play, FastForward, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { payUSDC } from "@/helpers/payusdc";
+import { pay_usdc_to_prediction_contract } from "@/helpers/payusdc";
 import { match_info_contract_abi } from '@/constants/contract_abi'
 import { execute_match_info_contract_function } from '@/helpers/match_info_smart_contract_caller'
+import { useGameWebsocket } from '@/providers/game_websocket_provider'
 
 // Sample data for matches
 
@@ -21,13 +22,14 @@ export default function MatchMakingLobbies() {
   const [matches, setMatches] = useState<MatchList>(new MatchList())
   const [showModal1, setShowModal1] = useState(false)
   const [showModal2, setShowModal2] = useState(false)
-  const [selectedMatch, setSelectedMatch] = useState<{ playerA: string; playerB: string } | null>(null)
+  const [selectedMatch, setSelectedMatch] = useState<{ id: number, playerA: string; playerB: string } | null>(null)
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null)
   const [betAmount, setBetAmount] = useState<string>('')
   const router = useRouter();
 
   const {ready, authenticated, login, logout, sendTransaction} = usePrivy();
   const {ready: walletsReady, wallets} = useWallets();
+  const {onReceiveMessage} = useGameWebsocket();
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -119,7 +121,7 @@ export default function MatchMakingLobbies() {
     }*/
   }
 
-  const handlePredict = (match: { playerA: string; playerB: string }) => {
+  const handlePredict = (match: { id: number, playerA: string; playerB: string }) => {
     setSelectedMatch(match)
     setShowModal1(true)
   }
@@ -134,18 +136,23 @@ export default function MatchMakingLobbies() {
 
   const handleConfirmBet = async () => {
     if (selectedPlayer && betAmount) {
+      
       console.log(`Bet confirmed: ${betAmount} on ${selectedPlayer}`)
       const amountToDeposit = Number(betAmount) * 1000000;
-      const payment_hash = "test";// await payUSDC(wallets, amountToDeposit);
+      if (selectedMatch?.id !== undefined) {
+        await pay_usdc_to_prediction_contract(wallets[0], selectedMatch.id, selectedPlayer === selectedMatch.playerA ? 1 : 2, amountToDeposit);
+      }
+      
       // Add your bet confirmation logic here
       setShowModal1(false)
       setSelectedPlayer(null)
       setBetAmount('')
       setSelectedMatch(null)
+      /*
       if (payment_hash !== null)
       {
         setShowModal2(true)
-      }
+      }*/
     }
   }
 

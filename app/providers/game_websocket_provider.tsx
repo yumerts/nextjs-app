@@ -1,6 +1,8 @@
 import React, { createContext, useState, ReactNode, useContext, useEffect } from 'react';
 import { Modal, ModalBody, ModalContent, ModalHeader, ModalFooter, Button } from '@nextui-org/react';
 import { useWallets, usePrivy } from '@privy-io/react-auth';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 interface GameWebsocketProviderType {
     gameWebsocket: WebSocket | null;
@@ -18,6 +20,7 @@ export const GameWebsocketProvider: React.FC<{ children: ReactNode }> = ({ child
     const [messageCallbacks, setMessageCallbacks] = useState<Array<(message: MessageEvent) => void>>([]);
     const [match_id, setMatchId] = useState(0);
     const {ready, wallets} = useWallets();
+    const router = useRouter();
 
     const connect = (match_id: number) => {
         const websocketHost = process.env.NEXT_PUBLIC_GAME_SERVER_WEBSOCKET_HOST;
@@ -41,7 +44,23 @@ export const GameWebsocketProvider: React.FC<{ children: ReactNode }> = ({ child
         }
 
         ws.onmessage = (message) => {
-            messageCallbacks.forEach(callback => callback(message));
+            console.log(message)
+            const parsedMessage = JSON.parse(message.data);
+            let messageType = parsedMessage.type as string;
+
+            if(messageType == "match_started"){
+                //go to /gameplay 
+                router.push('/gameplay');
+            }
+
+            if(messageType == "match_ended"){
+                toast.success("Match Ended with Player " + parsedMessage.data.winner);
+                router.push('/');
+                ws.close();
+            }
+            messageCallbacks.forEach(callback => callback(parsedMessage));
+            
+            //messageCallbacks.forEach(callback => callback(message));
         };
 
         setGameWebsocket(ws);
@@ -55,7 +74,14 @@ export const GameWebsocketProvider: React.FC<{ children: ReactNode }> = ({ child
 
     const send_inputs = (input: any) => {
         if (gameWebsocket) {
-            gameWebsocket.send(JSON.stringify(input));
+
+            let message = {
+                type: "input",
+                match_id: match_id,
+                playerAddress: wallets[0].address,
+                data: input
+            }
+            gameWebsocket.send(JSON.stringify(message));
         }
     };
 
