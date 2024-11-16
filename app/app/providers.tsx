@@ -6,9 +6,14 @@ import { useRouter } from "next/navigation";
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
 import { PrivyProvider, usePrivy } from "@privy-io/react-auth";
 import { ThemeProviderProps } from "next-themes/dist/types";
+import { PushNotificationProvider } from "@/providers/push_notification_provider";
 import { useState } from "react";
 import dotenv from "dotenv";
 import { arbitrumSepolia } from "viem/chains";
+
+import { PushStream } from "@pushprotocol/restapi/src/lib/pushstream/PushStream";
+import { CONSTANTS, PushAPI } from "@pushprotocol/restapi";
+import { Toaster } from "react-hot-toast";
 
 dotenv.config();
 
@@ -36,7 +41,10 @@ export function Providers({ children, themeProps }: ProvidersProps) {
             supportedChains: [arbitrumSepolia],
           }}
         >
-          {children}
+          <PushNotificationProvider>
+            <Toaster/>
+            {children}
+          </PushNotificationProvider>
         </PrivyProvider>
       </NextThemesProvider>
     </NextUIProvider>
