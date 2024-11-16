@@ -32,9 +32,11 @@
 		"lucide-react": "^0.459.0",
 		"next": "14.2.4",
 		"next-themes": "^0.2.1",
+		"nodejs": "^0.0.0",
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
-		"recharts": "^2.13.3"
+		"recharts": "^2.13.3",
+		"viem": "^2.21.45"
 	},
 	"devDependencies": {
 		"@types/node": "20.5.7",
