@@ -86,6 +86,13 @@ export default function MatchMakingLobbies() {
   }
 
   const handleJoinMatch = async (matchId: number) => {
+    await execute_match_info_contract_function(
+      wallets[0],
+      'joinMatch',
+      [matchId]
+    )
+
+    /*
     console.log("Joining match:", matchId)
     // Handle join match logic
     const amountToDeposit = 1000000;
@@ -108,7 +115,7 @@ export default function MatchMakingLobbies() {
       }
     } catch (error) {
       console.error('Error:', error);
-    }
+    }*/
   }
 
   const handlePredict = (match: { playerA: string; playerB: string }) => {
