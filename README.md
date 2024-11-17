@@ -1,5 +1,12 @@
 # Frontend for Yume RTS with NextJS
 
+To run on local:
+```
+cd app
+npm install
+npm run dev
+```
+
 # Integrations:
 
 Repo containing the frontend NextJS code, integrated with the backend server hosted in Phala TEE and smart contracts deployed on Arbitrum Sepolia.
