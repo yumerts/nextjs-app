@@ -4,6 +4,11 @@
 
 Repo containing the frontend NextJS code, integrated with the backend server hosted in Phala TEE and smart contracts deployed on Arbitrum Sepolia.
 
+## Backend Server:
+https://github.com/yumerts/yumerts-game-server
+- Handling backend server logic, matchmaking, and communication and orchestration between smart contract and frontend
+
+## Smart Contracts:
 https://github.com/yumerts/prediction-contract
 - Handles creating new prediction pools, allowing users to stake USDC, closing prediction pools, and handling prediction results and payouts
   
