@@ -1,1 +1,1 @@
-# nextjs-app
+# Frontend for Yume RTS using NextJS
