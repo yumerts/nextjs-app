@@ -1,5 +1,7 @@
 # Frontend for Yume RTS with NextJS
 
+# Integrations:
+
 Repo containing the frontend NextJS code, integrated with the backend server hosted in Phala TEE and smart contracts deployed on Arbitrum Sepolia.
 
 https://github.com/yumerts/prediction-contract
