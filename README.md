@@ -7,6 +7,8 @@ npm install
 npm run dev
 ```
 
+Make sure 
+
 # Integrations:
 
 Repo containing the frontend NextJS code, integrated with the backend server hosted in Phala TEE and smart contracts deployed on Arbitrum Sepolia.
