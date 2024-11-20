@@ -43,6 +43,8 @@ export default function ProfilePage() {
   let [displayName, setDisplayName] = useState("");
   let [gamesWon, setGamesWon] = useState(999);
   let [gamesLost, setGamesLost] = useState(999);
+  let [newDisplayName, setNewDisplayName] = useState("");
+  let [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     const getPlayerInfo = async () => {
@@ -282,6 +284,13 @@ export default function ProfilePage() {
     }
   });
 
+  const handleSaveDisplayName = async () => {
+    // TODO: Add actual API call here
+    console.log("Saving new display name:", newDisplayName);
+    setDisplayName(newDisplayName);
+    setIsEditing(false);
+  };
+
   return (
     <div>
       <Card className="max-w-[800px] mx-auto">
@@ -295,6 +304,34 @@ export default function ProfilePage() {
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                {isEditing ? (
+                <div className="flex gap-2">
+                  <input
+                  type="text"
+                  value={newDisplayName}
+                  onChange={(e) => setNewDisplayName(e.target.value)}
+                  className="border p-1 rounded"
+                  />
+                  <button
+                  onClick={handleSaveDisplayName}
+                  className="bg-white text-black px-2 py-1 rounded"
+                  >
+                  Save
+                  </button>
+                </div>
+                ) : (
+                <button
+                  onClick={() => {
+                  setIsEditing(true);
+                  setNewDisplayName(displayName);
+                  }}
+                  className="bg-white text-black px-2 py-1 rounded"
+                >
+                  Edit username
+                </button>
+                )}
+            </div>
             <div>
               <p>Profile Summary</p>
               <p>
